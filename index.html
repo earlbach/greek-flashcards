@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Classroom Flashcards</title>
+<style>
+:root{--ink:#243047;--muted:#68758b;--paper:#fff;--bg:#f3f6fb;--line:#dce3ee;--blue:#3559a8;--blue2:#e9efff;--green:#19734b;--red:#a93a45;--gold:#9a6a00}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:980px;margin:auto;padding:18px}.top{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}
+h1{font-size:clamp(1.35rem,4vw,2rem);margin:0}.sub{color:var(--muted);margin:4px 0 0}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.tab,button,.btn{border:1px solid var(--line);border-radius:10px;padding:10px 14px;background:white;color:var(--ink);font:inherit;cursor:pointer}
+button.primary,.tab.active{background:var(--blue);border-color:var(--blue);color:#fff}button:disabled{opacity:.45;cursor:not-allowed}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:clamp(14px,3vw,24px);box-shadow:0 4px 18px #2538580b}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}.muted{color:var(--muted)}.small{font-size:.9rem}.hidden{display:none!important}
+.pill{display:inline-block;border-radius:99px;padding:4px 10px;background:var(--blue2);color:var(--blue);font-size:.85rem}
+.card{min-height:300px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:14px;padding:18px}
+.face-label{font-size:.8rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.face-text{font-size:clamp(1.5rem,5vw,2.7rem);font-weight:700;white-space:pre-wrap;overflow-wrap:anywhere}
+.media{max-width:100%;max-height:210px;object-fit:contain;border-radius:12px}.audio-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+progress{width:100%;height:10px;accent-color:var(--blue)}.actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.good{color:var(--green)}.bad{color:var(--red)}.hard{color:var(--gold)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:14px 0}.stat{border:1px solid var(--line);border-radius:14px;padding:14px}.stat strong{display:block;font-size:1.7rem}
+input,textarea,select{width:100%;padding:10px 11px;border:1px solid #cbd5e1;border-radius:9px;font:inherit;background:#fff;color:var(--ink)}
+label{display:block;font-weight:600;margin:12px 0 5px}.formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+hr{border:0;border-top:1px solid var(--line);margin:18px 0}.listitem{padding:12px 0;border-bottom:1px solid var(--line)}.listitem:last-child{border-bottom:0}
+.notice{background:#fff7df;border:1px solid #f0d98d;padding:12px;border-radius:10px;color:#654a00}.foot{margin:18px 2px;color:var(--muted);font-size:.83rem}
+@media(max-width:520px){main{padding:10px}.card{min-height:250px}.panel{border-radius:14px}}
+</style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <div><h1 id="appTitle">Classroom Flashcards</h1><p class="sub">Practice a little, remember a lot.</p></div>
+    <div class="row"><span class="pill" id="duePill">0 due today</span></div>
+  </header>
+  <nav aria-label="Main navigation">
+    <button class="tab active" data-view="study">Study</button>
+    <button class="tab" data-view="progress">My progress</button>
+    <button class="tab" data-view="cards">Card list</button>
+    <button class="tab" data-view="manage">Teacher / setup</button>
+  </nav>
+
+  <section id="study" class="view">
+    <div class="row between" style="margin-bottom:10px"><div><span class="muted small" id="deckLabel">Sample deck</span><h2 style="margin:3px 0" id="studyHeading">Cards due for review</h2></div><span class="pill" id="counter">Card 1 of 5</span></div>
+    <progress id="progressBar" value="0" max="100"></progress>
+    <div class="panel card" style="margin-top:14px" id="flashcard">
+      <div class="face-label" id="faceLabel">Front</div>
+      <div id="faceContent" class="face-text">ὁ ἄνθρωπος</div>
+      <div id="mediaContent"></div>
+      <div class="audio-row" id="audioControls"></div>
+      <button id="revealBtn" class="primary">Reveal answer</button>
+    </div>
+    <div id="gradeActions" class="actions hidden">
+      <button data-grade="again">Again</button><button data-grade="hard">Hard</button><button data-grade="good" class="primary">Got it!</button>
+    </div>
+    <div class="actions"><button id="prevBtn">← Previous</button><button id="nextBtn">Skip →</button><button id="shuffleBtn">Shuffle</button></div>
+    <p class="muted small" id="studyMessage" aria-live="polite" style="text-align:center"></p>
+  </section>
+
+  <section id="progress" class="view hidden">
+    <div class="panel"><h2>My progress</h2><p class="muted">Saved in this browser on this device. No account or server is used.</p>
+      <div class="grid">
+        <div class="stat"><span class="muted">Reviewed</span><strong id="statReviewed">0</strong></div>
+        <div class="stat"><span class="muted">Correct on first try</span><strong id="statAccuracy">—</strong></div>
+        <div class="stat"><span class="muted">Due now</span><strong id="statDue">0</strong></div>
+        <div class="stat"><span class="muted">Mastered</span><strong id="statMastered">0</strong></div>
+      </div>
+      <h3>What I know</h3><div id="knownList"></div>
+      <h3>Needs more practice</h3><div id="learningList"></div>
+      <div class="actions"><button id="exportProgressBtn">Export my progress</button><button id="resetProgressBtn">Reset my progress</button></div>
+    </div>
+  </section>
+
+  <section id="cards" class="view hidden">
+    <div class="panel"><h2>Card list</h2><p class="muted">Browse the current deck and see your status for each card.</p>
+      <div class="row"><input id="cardSearch" placeholder="Search cards…" aria-label="Search cards"><select id="statusFilter" aria-label="Filter by status"><option value="all">All statuses</option><option value="new">New</option><option value="learning">Needs practice</option><option value="known">Familiar / mastered</option></select></div>
+      <div id="allCardsList"></div>
+    </div>
+  </section>
+
+  <section id="manage" class="view hidden">
+    <div class="panel">
+      <h2>Teacher / setup</h2>
+      <div class="notice small"><strong>How this free version works:</strong> card edits are saved in the browser where you make them. To share a deck with students, export the deck JSON and publish it with the app (or have students import it). Student progress stays in each student's browser and is not visible to the teacher.</div>
+      <label for="deckTitle">Deck title</label><input id="deckTitle" value="Classroom Flashcards">
+      <div class="actions"><button id="saveTitleBtn" class="primary">Save title</button><button id="exportDeckBtn">Export deck</button><button id="importDeckBtn">Import deck JSON</button><input type="file" id="deckFile" accept=".json,application/json" class="hidden"></div>
+      <hr><h3 id="editorHeading">Add a flashcard</h3>
+      <input type="hidden" id="editId">
+      <div class="formgrid">
+        <div><label for="frontText">Front text</label><textarea id="frontText" rows="3" placeholder="e.g. ὁ ἄνθρωπος"></textarea>
+          <label for="frontImage">Front image (optional)</label><input id="frontImage" type="file" accept="image/*">
+          <label for="frontAudio">Front audio (optional)</label><input id="frontAudio" type="file" accept="audio/*">
+        </div>
+        <div><label for="backText">Back text</label><textarea id="backText" rows="3" placeholder="e.g. the human / person"></textarea>
+          <label for="backImage">Back image (optional)</label><input id="backImage" type="file" accept="image/*">
+          <label for="backAudio">Back audio (optional)</label><input id="backAudio" type="file" accept="audio/*">
+        </div>
+      </div>
+      <p class="muted small">Tip: use short audio files and compressed images. Browser storage is limited. Alternatively, use public HTTPS image/audio URLs by entering them in the URL fields below.</p>
+      <div class="formgrid">
+        <div><label for="frontImageUrl">Front image URL (optional)</label><input id="frontImageUrl" type="url" placeholder="https://…"></div>
+        <div><label for="frontAudioUrl">Front audio URL (optional)</label><input id="frontAudioUrl" type="url" placeholder="https://…"></div>
+        <div><label for="backImageUrl">Back image URL (optional)</label><input id="backImageUrl" type="url" placeholder="https://…"></div>
+        <div><label for="backAudioUrl">Back audio URL (optional)</label><input id="backAudioUrl" type="url" placeholder="https://…"></div>
+      </div>
+      <div class="actions"><button id="saveCardBtn" class="primary">Add card</button><button id="cancelEditBtn">Cancel edit</button></div>
+      <hr><h3>Manage cards</h3><div id="manageCardsList"></div>
+      <hr><h3>Audio help</h3><p>For text-to-speech, use the speech button on a card when available. Pronunciation varies by browser and device; for Ancient Greek, uploaded recordings are usually more reliable. The browser's built-in speech feature may not support Ancient Greek correctly.</p>
+    </div>
+  </section>
+  <p class="foot">Free, browser-based flashcards. Progress is stored locally; clearing browser data may erase it. Export backups regularly.</p>
+</main>
+<script>
+const STORAGE_KEY='classroomFlashcards_v1';
+const PROGRESS_KEY='classroomFlashcardsProgress_v1';
+const now=()=>Date.now();
+const uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+const starter=[
+{id:'greek1',front:{text:'ὁ ἄνθρωπος',image:'',audio:''},back:{text:'the person; the human being',image:'',audio:''}},
+{id:'greek2',front:{text:'ἡ γυνή',image:'',audio:''},back:{text:'the woman; the wife',image:'',audio:''}},
+{id:'greek3',front:{text:'ὁ οἶκος',image:'',audio:''},back:{text:'the house; the home',image:'',audio:''}},
+{id:'greek4',front:{text:'λύω',image:'',audio:''},back:{text:'I loosen / release',image:'',audio:''}},
+{id:'greek5',front:{text:'τίς;',image:'',audio:''},back:{text:'who?',image:'',audio:''}}
+];
+let deck={title:'Classroom Flashcards',cards:starter};
+let progress={};
+let queue=[],pos=0,revealed=false;
+function load(){
+ try{const d=JSON.parse(localStorage.getItem(STORAGE_KEY));if(d&&Array.isArray(d.cards))deck=d}catch(e){}
+ try{progress=JSON.parse(localStorage.getItem(PROGRESS_KEY))||{}}catch(e){progress={}}
+}
+function saveDeck(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(deck));return true}catch(e){alert('Browser storage is full. Try smaller image/audio files or use public URLs, then export your deck for backup.');return false}}
+function saveProgress(){try{localStorage.setItem(PROGRESS_KEY,JSON.stringify(progress))}catch(e){alert('Could not save progress. Export a backup or free browser storage.')}} 
+function status(c){const p=progress[c.id];if(!p||!p.reviews)return 'new';if((p.streak||0)>=4)return 'known';return 'learning'}
+function due(c){const p=progress[c.id];return !p||!p.due||p.due<=now()}
+function interval(p,grade){
+ if(grade==='again')return 1/1440;
+ if(grade==='hard')return Math.max(1/24,(p.interval||1)*1.2);
+ if((p.streak||0)===0)return 1;
+ if((p.streak||0)===1)return 3;
+ return Math.max(1,(p.interval||3)*2.2);
+}
+function initQueue(){queue=deck.cards.filter(due).map(c=>c.id);if(!queue.length)queue=deck.cards.map(c=>c.id);pos=0;revealed=false;renderStudy()}
+function current(){return deck.cards.find(c=>c.id===queue[pos])||deck.cards[0]}
+function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function side(){const c=current();return c?(revealed?c.back:c.front):{text:'No cards yet',image:'',audio:''}}
+function renderMedia(sideData){
+ const box=document.getElementById('mediaContent');box.innerHTML='';
+ if(sideData.image){const img=document.createElement('img');img.className='media';img.alt='Flashcard illustration';img.src=sideData.image;img.onerror=()=>{img.alt='Image could not be loaded';};box.appendChild(img)}
+ const aud=document.getElementById('audioControls');aud.innerHTML='';
+ if(sideData.audio){const a=document.createElement('audio');a.controls=true;a.preload='none';a.src=sideData.audio;a.style.maxWidth='100%';aud.appendChild(a)}
+ const tts=document.createElement('button');tts.textContent='🔊 Speak text';tts.onclick=()=>speak(sideData.text);aud.appendChild(tts);
+}
+function speak(text){if(!('speechSynthesis'in window)){alert('Text-to-speech is not supported in this browser. Use an uploaded audio recording.');return}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text||'');u.lang='el-GR';speechSynthesis.speak(u)}
+function renderStudy(){
+ document.getElementById('appTitle').textContent=deck.title||'Classroom Flashcards';
+ const c=current(),front=side();document.getElementById('deckLabel').textContent=deck.title;
+ document.getElementById('counter').textContent=deck.cards.length?`Card ${Math.min(pos+1,queue.length)} of ${queue.length}`:'0 cards';
+ document.getElementById('faceLabel').textContent=revealed?'Answer':'Question';
+ document.getElementById('faceContent').textContent=front.text||'';
+ renderMedia(front);
+ document.getElementById('revealBtn').classList.toggle('hidden',revealed||!c);
+ document.getElementById('gradeActions').classList.toggle('hidden',!revealed||!c);
+ document.getElementById('prevBtn').disabled=pos<=0;document.getElementById('nextBtn').disabled=!queue.length;
+ document.getElementById('progressBar').value=queue.length?100*(pos+1)/queue.length:0;
+ document.getElementById('duePill').textContent=deck.cards.filter(due).length+' due today';
+ document.getElementById('studyMessage').textContent=deck.cards.length?'Reveal the answer, then choose how well you remembered.':'Add a card in Teacher / setup to begin.';
+}
+function grade(g){
+ const c=current();if(!c)return;const p=progress[c.id]||{reviews:0,streak:0,interval:0,correct:0,wrong:0};
+ p.reviews++;p.last=now();
+ if(g==='good'){p.correct++;p.streak=(p.streak||0)+1}else{p.wrong++;p.streak=0}
+ p.interval=interval(p,g);p.due=now()+p.interval*86400000;progress[c.id]=p;saveProgress();
+ const msg=g==='good'?'Nice work — this card is scheduled for a later review.':g==='hard'?'Keep practicing — this card will return soon.':'That is okay — this card will return shortly.';
+ document.getElementById('studyMessage').textContent=msg;
+ if(pos<queue.length-1)pos++;else {queue=deck.cards.filter(due).map(x=>x.id);if(!queue.length)queue=deck.cards.map(x=>x.id);pos=0}
+ revealed=false;renderStudy();renderProgress();renderCards();
+}
+function activateView(name){
+ document.querySelectorAll('.view').forEach(x=>x.classList.toggle('hidden',x.id!==name));
+ document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.view===name));
+ if(name==='progress')renderProgress();if(name==='cards')renderCards();if(name==='manage')renderManage();
+}
+function renderProgress(){
+ let reviewed=0,correct=0,wrong=0,mastered=0;
+ deck.cards.forEach(c=>{const p=progress[c.id];if(p){reviewed+=p.reviews||0;correct+=p.correct||0;wrong+=p.wrong||0;if(status(c)==='known')mastered++}});
+ document.getElementById('statReviewed').textContent=reviewed;
+ document.getElementById('statAccuracy').textContent=(correct+wrong)?Math.round(100*correct/(correct+wrong))+'%':'—';
+ document.getElementById('statDue').textContent=deck.cards.filter(due).length;
+ document.getElementById('statMastered').textContent=mastered;
+ const list=(arr)=>arr.length?arr.map(c=>`<div class="listitem"><strong>${esc(c.front.text||'(image/audio card)')}</strong><div class="muted small">${esc(c.back.text||'')}</div></div>`).join(''):'<p class="muted">Nothing here yet.</p>';
+ document.getElementById('knownList').innerHTML=list(deck.cards.filter(c=>status(c)==='known'));
+ document.getElementById('learningList').innerHTML=list(deck.cards.filter(c=>status(c)!=='known'));
+}
+function renderCards(){
+ const q=(document.getElementById('cardSearch')?.value||'').toLowerCase(),filter=document.getElementById('statusFilter')?.value||'all';
+ const arr=deck.cards.filter(c=>((c.front.text+' '+c.back.text).toLowerCase().includes(q))&&(filter==='all'||(filter==='new'?status(c)==='new':filter==='learning'?status(c)==='learning':status(c)==='known')));
+ document.getElementById('allCardsList').innerHTML=arr.length?arr.map(c=>`<div class="listitem"><div class="row between"><strong>${esc(c.front.text||'(media card)')}</strong><span class="pill">${status(c)==='new'?'New':status(c)==='known'?'Mastered':'Needs practice'}</span></div><div>${esc(c.back.text||'')}</div></div>`).join(''):'<p class="muted">No matching cards.</p>';
+}
+function renderManage(){
+ document.getElementById('deckTitle').value=deck.title||'Classroom Flashcards';
+ document.getElementById('manageCardsList').innerHTML=deck.cards.map(c=>`<div class="listitem"><div class="row between"><div><strong>${esc(c.front.text||'(media card)')}</strong><div class="muted small">${esc(c.back.text||'')}</div></div><div class="row"><button data-edit="${c.id}">Edit</button><button data-delete="${c.id}">Delete</button></div></div></div>`).join('')||'<p class="muted">No cards yet.</p>';
+}
+async function fileData(input){const f=input.files[0];if(!f)return '';if(f.size>2*1024*1024){alert('For this local version, each uploaded media file should be 2 MB or less. You can use a public HTTPS URL instead.');input.value='';return ''}return await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(f)})}
+function resetEditor(){['editId','frontText','backText','frontImageUrl','frontAudioUrl','backImageUrl','backAudioUrl'].forEach(id=>document.getElementById(id).value='');['frontImage','frontAudio','backImage','backAudio'].forEach(id=>document.getElementById(id).value='');document.getElementById('editorHeading').textContent='Add a flashcard';document.getElementById('saveCardBtn').textContent='Add card'}
+async function saveCard(){
+ const id=document.getElementById('editId').value||uid();const old=deck.cards.find(c=>c.id===id);
+ const get=(key,urlKey,oldVal)=>document.getElementById(urlKey).value.trim()||oldVal||'';
+ const fi=await fileData(document.getElementById('frontImage')),fa=await fileData(document.getElementById('frontAudio')),bi=await fileData(document.getElementById('backImage')),ba=await fileData(document.getElementById('backAudio'));
+ const card={id,front:{text:document.getElementById('frontText').value.trim(),image:get('','frontImageUrl',fi||old?.front.image),audio:get('','frontAudioUrl',fa||old?.front.audio)},back:{text:document.getElementById('backText').value.trim(),image:get('','backImageUrl',bi||old?.back.image),audio:get('','backAudioUrl',ba||old?.back.audio)}};
+ if(!card.front.text&&!card.back.text&&!card.front.image&&!card.back.image&&!card.front.audio&&!card.back.audio){alert('Add text, an image, or audio to at least one side.');return}
+ const idx=deck.cards.findIndex(c=>c.id===id);if(idx>=0)deck.cards[idx]=card;else deck.cards.push(card);
+ if(saveDeck()){resetEditor();renderManage();initQueue();renderCards();renderProgress()}
+}
+function editCard(id){
+ const c=deck.cards.find(c=>c.id===id);if(!c)return;document.getElementById('editId').value=id;
+ document.getElementById('frontText').value=c.front.text||'';document.getElementById('backText').value=c.back.text||'';
+ document.getElementById('frontImageUrl').value=c.front.image?.startsWith('data:')?'':c.front.image||'';
+ document.getElementById('frontAudioUrl').value=c.front.audio?.startsWith('data:')?'':c.front.audio||'';
+ document.getElementById('backImageUrl').value=c.back.image?.startsWith('data:')?'':c.back.image||'';
+ document.getElementById('backAudioUrl').value=c.back.audio?.startsWith('data:')?'':c.back.audio||'';
+ document.getElementById('editorHeading').textContent='Edit flashcard';document.getElementById('saveCardBtn').textContent='Save changes';window.scrollTo({top:0,behavior:'smooth'});
+}
+function download(name,content,type='application/json'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>activateView(b.dataset.view));
+document.getElementById('revealBtn').onclick=()=>{revealed=true;renderStudy()};
+document.querySelectorAll('[data-grade]').forEach(b=>b.onclick=()=>grade(b.dataset.grade));
+document.getElementById('prevBtn').onclick=()=>{if(pos>0)pos--;revealed=false;renderStudy()};
+document.getElementById('nextBtn').onclick=()=>{if(pos<queue.length-1)pos++;else pos=0;revealed=false;renderStudy()};
+document.getElementById('shuffleBtn').onclick=()=>{queue.sort(()=>Math.random()-.5);pos=0;revealed=false;renderStudy()};
+document.getElementById('saveTitleBtn').onclick=()=>{deck.title=document.getElementById('deckTitle').value.trim()||'Classroom Flashcards';saveDeck();renderStudy();renderManage()};
+document.getElementById('saveCardBtn').onclick=saveCard;document.getElementById('cancelEditBtn').onclick=resetEditor;
+document.getElementById('manageCardsList').onclick=e=>{const edit=e.target.dataset.edit,del=e.target.dataset.delete;if(edit)editCard(edit);if(del&&confirm('Delete this card?')){deck.cards=deck.cards.filter(c=>c.id!==del);delete progress[del];saveDeck();saveProgress();renderManage();initQueue();renderCards();renderProgress()}};
+document.getElementById('exportDeckBtn').onclick=()=>download('flashcard-deck.json',JSON.stringify(deck,null,2));
+document.getElementById('importDeckBtn').onclick=()=>document.getElementById('deckFile').click();
+document.getElementById('deckFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!Array.isArray(d.cards))throw Error();if(confirm('Replace the current deck with '+d.cards.length+' cards?')){deck={title:d.title||'Imported deck',cards:d.cards};saveDeck();initQueue();renderManage();renderProgress();renderCards()}}catch(err){alert('That file does not look like a valid flashcard deck JSON.')}e.target.value=''};
+document.getElementById('exportProgressBtn').onclick=()=>download('my-flashcard-progress.json',JSON.stringify({exportedAt:new Date().toISOString(),progress},null,2));
+document.getElementById('resetProgressBtn').onclick=()=>{if(confirm('Erase all progress saved in this browser for this app?')){progress={};saveProgress();renderProgress();renderCards();initQueue()}};
+document.getElementById('cardSearch').oninput=renderCards;document.getElementById('statusFilter').onchange=renderCards;
+load();initQueue();renderProgress();renderCards();renderManage();
+</script>
+</body>
+</html>
